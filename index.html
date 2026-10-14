@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#07111f">
+<title>Sentrix Chain v0.1 — Ledger Lab</title>
+<style>
+:root{--bg:#07111f;--panel:#101e31;--panel2:#0b1727;--line:#243953;--text:#eaf3ff;--muted:#9bb0c9;--cyan:#42e8e0;--blue:#6aa9ff;--green:#69e6a6;--red:#ff7e8a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#102b45 0,#07111f 55%);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{padding:28px 16px 20px;text-align:center;border-bottom:1px solid var(--line)}.brand{font-size:clamp(27px,7vw,40px);font-weight:850;letter-spacing:2px;margin:0}.brand span{color:var(--cyan)}.tag{color:var(--muted);margin:5px 0 0}.badge{display:inline-block;border:1px solid #2e6b78;color:var(--cyan);border-radius:999px;padding:4px 10px;font-size:12px;margin-top:12px}
+main{max-width:900px;margin:auto;padding:16px;display:grid;gap:14px}.card{background:linear-gradient(145deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 10px 30px #0002}.card h2{font-size:17px;margin:0 0 12px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#071321;border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center}.num{font-size:23px;font-weight:800;color:var(--cyan)}.label{font-size:11px;color:var(--muted)}
+label{display:block;color:var(--muted);font-size:13px;margin:10px 0 5px}input,textarea{width:100%;border-radius:10px;border:1px solid #2a405a;background:#071321;color:var(--text);padding:12px;font:inherit}textarea{min-height:74px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{border:0;border-radius:10px;padding:12px 14px;font:700 14px system-ui;cursor:pointer;min-height:44px}.primary{background:var(--cyan);color:#04121b}.secondary{background:#1b3551;color:var(--text);border:1px solid #34516f}.danger{background:#401f2b;color:#ffdce0;border:1px solid #773744}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.note{color:var(--muted);font-size:12px}.status{padding:11px 12px;border-radius:10px;background:#071321;border:1px solid var(--line);margin-top:12px;overflow-wrap:anywhere}.ok{color:var(--green)}.bad{color:var(--red)}.block{border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:10px;background:#081525;overflow-wrap:anywhere}.blocktop{display:flex;justify-content:space-between;gap:10px;align-items:center}.block h3{font-size:14px;margin:0;color:var(--cyan)}.pill{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:3px 7px;border-radius:99px}.hash{font:11px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;color:#b5c9e3;word-break:break-all}.tx{border-left:2px solid var(--blue);padding:7px 10px;margin-top:8px;background:#0d1b2d;border-radius:0 8px 8px 0}.footer{text-align:center;color:var(--muted);font-size:12px;padding:4px 14px 24px}.warning{border-color:#80613b;background:#251d13}.warning strong{color:#ffd08b}
+@media(max-width:520px){.row{grid-template-columns:1fr}.stats{gap:6px}.num{font-size:20px}.card{padding:13px}}
+</style>
+</head>
+<body>
+<header>
+  <h1 class="brand">SENTRIX <span>CHAIN</span></h1>
+  <p class="tag">Quantum-Resistant Ledger • Prototype Lab</p>
+  <span class="badge">EXPERIMENTAL DEMO · v0.1</span>
+</header>
+<main>
+  <section class="card">
+    <h2>Ledger overview</h2>
+    <div class="stats">
+      <div class="stat"><div class="num" id="blockCount">1</div><div class="label">BLOCKS</div></div>
+      <div class="stat"><div class="num" id="txCount">0</div><div class="label">TRANSACTIONS</div></div>
+      <div class="stat"><div class="num" id="chainStatus">OK</div><div class="label">CHAIN STATUS</div></div>
+    </div>
+    <div id="status" class="status">Ready. Add a demo transaction, then create a block.</div>
+  </section>
+
+  <section class="card">
+    <h2>1 · Create a demo transaction</h2>
+    <p class="note">This is a local ledger demonstration. It does not transfer real coins or connect to a public blockchain.</p>
+    <div class="row">
+      <div><label for="sender">From</label><input id="sender" value="Alice" maxlength="64"></div>
+      <div><label for="recipient">To</label><input id="recipient" value="Bob" maxlength="64"></div>
+    </div>
+    <label for="amount">Amount (demo units)</label><input id="amount" type="number" min="0.000001" step="any" value="10">
+    <div class="actions"><button class="primary" id="addTx">Add transaction</button><button class="secondary" id="clearPending">Clear pending</button></div>
+    <div id="pending" class="note" style="margin-top:10px">No pending transactions.</div>
+  </section>
+
+  <section class="card">
+    <h2>2 · Build and verify blocks</h2>
+    <p class="note">Blocks are linked by SHA-256 hashes. This demonstrates tamper-evident chaining, but SHA-256 block hashes alone do not make the ledger quantum-resistant.</p>
+    <div class="actions"><button class="primary" id="mine">Create block</button><button class="secondary" id="verify">Verify entire chain</button><button class="danger" id="tamper">Simulate tampering</button><button class="secondary" id="reset">Reset demo</button></div>
+  </section>
+
+  <section class="card">
+    <h2>3 · Blockchain ledger</h2>
+    <div id="blocks"></div>
+  </section>
+
+  <section class="card warning">
+    <h2>Security status — read before using</h2>
+    <p><strong>Not yet quantum-resistant.</strong> This prototype currently uses SHA-256 for block hashing and has no post-quantum wallet signatures, distributed consensus, peer-to-peer networking, or real native coin. The next engineering phase is to integrate and test a standardized post-quantum signature scheme such as ML-DSA, then obtain an independent security review.</p>
+    <p class="note">Do not enter real passwords, seed phrases, private keys, or funds. This prototype is for learning and testing only.</p>
+  </section>
+</main>
+<div class="footer">SENTRIX CHAIN · Local prototype · No real cryptocurrency value</div>
+<script>
+const $ = id => document.getElementById(id);
+let chain = [], pending = [];
+const encoder = new TextEncoder();
+async function sha256(text) {
+  if (!window.crypto || !crypto.subtle) throw new Error("Secure Web Crypto is unavailable. Open this app through an HTTPS site such as a hosted Replit project.");
+  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(text));
+  return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2,"0")).join("");
+}
+function canonical(block) { return JSON.stringify({index:block.index,timestamp:block.timestamp,transactions:block.transactions,previousHash:block.previousHash}); }
+async function makeBlock(index, timestamp, transactions, previousHash) {
+  const b={index,timestamp,transactions:JSON.parse(JSON.stringify(transactions)),previousHash,hash:""};
+  b.hash=await sha256(canonical(b)); return b;
+}
+async function init() {
+  chain=[await makeBlock(0,new Date().toISOString(),[{type:"GENESIS",message:"Sentrix Chain prototype started"}],"0".repeat(64))];
+  pending=[]; render(); setStatus("Genesis block created. Ledger is ready.","ok");
+}
+function setStatus(msg,kind="") { $("status").innerHTML=`<span class="${kind}">${msg}</span>`; }
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function render(){
+  $("blockCount").textContent=chain.length;
+  $("txCount").textContent=chain.reduce((n,b)=>n+b.transactions.filter(t=>t.type==="TRANSFER").length,0);
+  $("chainStatus").textContent="—";
+  $("pending").textContent=pending.length?`${pending.length} pending transaction(s): `+pending.map(t=>`${t.from} → ${t.to}: ${t.amount}`).join(" · "):"No pending transactions.";
+  $("blocks").innerHTML=[...chain].reverse().map(b=>`<article class="block">
+    <div class="blocktop"><h3>Block #${b.index}</h3><span class="pill">${b.index===0?"GENESIS":"BLOCK"}</span></div>
+    <p class="note">${esc(b.timestamp)}</p><div class="note">Previous hash</div><div class="hash">${esc(b.previousHash)}</div>
+    <div class="note" style="margin-top:7px">Block hash</div><div class="hash">${esc(b.hash)}</div>
+    <div class="note" style="margin-top:10px">Transactions (${b.transactions.length})</div>
+    ${b.transactions.map(t=>`<div class="tx">${t.type==="TRANSFER"?`<b>${esc(t.from)}</b> → <b>${esc(t.to)}</b><br>Amount: ${esc(t.amount)} demo units`:`<b>${esc(t.type)}</b>: ${esc(t.message||"")}`}</div>`).join("")}
+  </article>`).join("");
+}
+$("addTx").addEventListener("click",()=>{
+  const from=$("sender").value.trim(),to=$("recipient").value.trim(),amount=Number($("amount").value);
+  if(!from||!to){setStatus("Please enter both sender and recipient.","bad");return}
+  if(from===to){setStatus("Sender and recipient must be different.","bad");return}
+  if(!Number.isFinite(amount)||amount<=0){setStatus("Enter an amount greater than zero.","bad");return}
+  pending.push({type:"TRANSFER",from,to,amount,createdAt:new Date().toISOString()});render();setStatus("Demo transaction added to pending list. Create a block to record it.","ok");
+});
+$("clearPending").addEventListener("click",()=>{pending=[];render();setStatus("Pending transactions cleared.","ok")});
+$("mine").addEventListener("click",async()=>{
+  try{
+    if(!pending.length){setStatus("Add at least one transaction first.","bad");return}
+    const b=await makeBlock(chain.length,new Date().toISOString(),pending,chain[chain.length-1].hash);
+    chain.push(b);pending=[];render();setStatus(`Block #${b.index} created and linked to the previous block.`,"ok");
+  }catch(e){setStatus(esc(e.message),"bad")}
+});
+$("verify").addEventListener("click",async()=>{
+  try{
+    for(let i=0;i<chain.length;i++){
+      const b=chain[i], expected=await sha256(canonical(b));
+      if(b.hash!==expected){$("chainStatus").textContent="INVALID";setStatus(`Verification failed: block #${i} data/hash mismatch.`,"bad");return}
+      if(i>0&&b.previousHash!==chain[i-1].hash){$("chainStatus").textContent="INVALID";setStatus(`Verification failed: block #${i} does not link to the previous block.`,"bad");return}
+    }
+    $("chainStatus").textContent="VALID";setStatus("Chain verification passed: hashes and links match. This is not a full consensus or quantum-security audit.","ok");
+  }catch(e){setStatus(esc(e.message),"bad")}
+});
+$("tamper").addEventListener("click",()=>{
+  if(chain.length<2){setStatus("Create a block first, then try the tampering demo.","bad");return}
+  chain[1].transactions[0].amount=999999;render();$("chainStatus").textContent="UNKNOWN";setStatus("Tampering simulated in block #1. Run verification to see the hash mismatch.","bad");
+});
+$("reset").addEventListener("click",()=>init());
+init();
+</script>
+</body>
+</html>
